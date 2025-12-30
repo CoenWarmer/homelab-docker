@@ -13,6 +13,7 @@ services:
     networks:
       - htpc-net
       - caddy-net # provides access for the reverse proxy
+      - proton-bridge-net # provides access to Proton Mail Bridge for email
 
     ports:
       - ${PORT_HTPC_REQUESTS}:5055
@@ -28,7 +29,7 @@ services:
       - homepage.icon=jellyseerr
       - homepage.href=http://${SERVER_URL}:${PORT_HTPC_REQUESTS}
       - homepage.widget.type=jellyseerr
-      - homepage.widget.url=http://${SERVER_URL}:${PORT_HTPC_REQUESTS}
+      - homepage.widget.url=http://jellyseerr:5055
       - homepage.widget.key=${HOMEPAGE_JELLYSEERR_API}
 
     volumes:
@@ -48,4 +49,7 @@ networks:
     external: true
   htpc-net:
     name: htpc-net
+    external: true
+  proton-bridge-net:
+    name: proton-bridge-net
     external: true

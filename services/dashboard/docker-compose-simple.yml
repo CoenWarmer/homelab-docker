@@ -1,0 +1,49 @@
+name: "dashboard-simple"
+
+services:
+
+####################
+# Simple Dashboard (Homer)
+####################
+
+  homer:
+    image: b4bz/homer:latest
+    container_name: homer
+
+    networks:
+      - caddy-net
+
+    ports:
+      - ${PORT_HOMER:-8080}:8080
+
+    environment:
+      PUID: ${PUID}
+      PGID: ${PGID}
+      TZ: ${TZ}
+
+    volumes:
+      - ./staticconfig/homer:/www/assets
+
+    labels:
+      - diun.enable=true
+      - homepage.group=System
+      - homepage.name=Homer
+      - homepage.icon=homer
+      - homepage.description=Simple Dashboard
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 32M
+    restart: unless-stopped
+
+
+networks:
+  caddy-net:
+    name: caddy-net
+    external: true
+
+
+
+

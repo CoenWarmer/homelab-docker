@@ -6,11 +6,48 @@ services:
 # Monitor
 ####################
 
+  glances:
+    container_name: glances
+    image: nicolargo/glances:latest-full
+
+    networks:
+      - caddy-net
+
+    ports:
+      - ${PORT_GLANCES}:61208
+
+    environment:
+      TZ: ${TZ}
+      GLANCES_OPT: "-w"  # Web server mode
+
+    labels:
+      - diun.enable=true
+      - homepage.group=System
+      - homepage.name=Glances
+      - homepage.icon=glances
+      - homepage.href=http://${SERVER_URL}:${PORT_GLANCES}
+      - homepage.description=System Monitoring
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/os-release:/etc/os-release:ro
+      - /:/rootfs:ro  # Mount host root filesystem
+
+    pid: host  # Required for accurate process/CPU monitoring
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+    restart: unless-stopped
+
   dozzle:
     container_name: dozzle
     image: amir20/dozzle:latest
 
     networks:
+      - caddy-net
       - socky_proxy-net
 
     ports:
@@ -75,6 +112,9 @@ services:
     container_name: scrutiny
     image: ghcr.io/analogj/scrutiny:master-omnibus
 
+    networks:
+      - caddy-net  # To reach signal-api for notifications
+
     ports:
       - ${PORT_SCRUTINY}:8080 # webapp
       - ${PORT_SCRUTINY_DB}:8086 # influxDB admin
@@ -90,17 +130,17 @@ services:
       - homepage.widget.url=http://${SERVER_URL}:${PORT_SCRUTINY}
 
     devices:
-      - /dev/sda
-      - /dev/sdb
-      - /dev/sdc
-      - /dev/sdd #ZFS pool1
-      - /dev/sde #ZFS pool1
+      - /dev/sda  # GIGABYTE SSD
+      - /dev/sdb  # Seagate 2TB
+      - /dev/sdc  # Seagate 2TB
+      - /dev/sdd  # Seagate 2TB
     
     volumes:
       - /run/udev:/run/udev:ro
       - ${CONFIGDIR}/scrutiny/smart_drivedb.h:/etc/smart_drivedb.h:z,ro
       - ${CONFIGDIR}/scrutiny:/opt/scrutiny/config
       - ${DBDIR}/scrutiny:/opt/scrutiny/influxdb
+      - ./staticconfig/scrutiny/notify-signal.sh:/opt/scrutiny/notify-signal.sh:ro
 
     cap_add:
       - SYS_RAWIO #necessary to allow smartctl permission to query your device SMART data 
@@ -116,6 +156,8 @@ services:
   speedtest-tracker:
     container_name: speedtest-tracker
     image: lscr.io/linuxserver/speedtest-tracker:latest
+    profiles:
+      - speedtest  # Disabled by default. Enable with: docker compose --profile speedtest up -d
 
     ports:
       - ${PORT_SPEEDTEST}:80
@@ -176,7 +218,43 @@ services:
           cpus: '1'
           memory: 128M
     restart: unless-stopped
-  
+
+####################
+# Notifications
+####################
+
+  signal-api:
+    container_name: signal-api
+    image: bbernhard/signal-cli-rest-api:latest
+
+    networks:
+      - caddy-net  # Shared network for Jellyseerr, etc.
+
+    ports:
+      - ${PORT_SIGNAL_API}:8080
+
+    environment:
+      MODE: native
+      # USE_NATIVE: "true"  # Alternative for newer versions
+
+    labels:
+      - diun.enable=true
+      - homepage.group=System
+      - homepage.name=Signal API
+      - homepage.icon=signal
+      - homepage.href=http://${SERVER_URL}:${PORT_SIGNAL_API}/v1/about
+      - homepage.description=Signal notification service
+
+    volumes:
+      - ${CONFIGDIR}/signal-cli:/home/.local/share/signal-cli
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+    restart: unless-stopped
+
 
 networks:
   caddy-net:

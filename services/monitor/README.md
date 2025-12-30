@@ -5,6 +5,8 @@
 - https://github.com/AnalogJ/scrutiny
 - https://github.com/alexjustesen/speedtest-tracker
 - https://github.com/louislam/uptime-kuma
+- https://github.com/bbernhard/signal-cli-rest-api
+- https://github.com/nicolargo/glances
 
 ## Dependencies
 
@@ -24,6 +26,8 @@
 - `PORT_UPKUMA`
 - `PORT_SCRUTINY`
 - `PORT_SCRUTINY_DB`
+- `PORT_SIGNAL_API`
+- `PORT_GLANCES`
 
 ### URLs
 - `SERVER_URL` - universal. your internal url
@@ -45,6 +49,36 @@
 - `CONFIGDIR` - universal. where the containers store their configuration data (aka Volume)
 - `DBDIR` - universal. where databases store their... databases. 
 - Each harddisk should be shared to Scrutiny via `devices` (eg. /dev/sda)
+
+
+## Signal API Setup
+
+The Signal API provides a REST interface for sending Signal messages from other services (Radarr, Sonarr, etc.).
+
+### First-time setup: Link to existing Signal account
+
+1. Start the container: `docker compose up -d signal-api`
+2. Generate a QR code to link as a secondary device:
+   ```bash
+   docker exec -it signal-api signal-cli link --name "homelab"
+   ```
+3. Scan the QR code with your Signal app (Settings → Linked Devices → Link New Device)
+4. Test sending a message:
+   ```bash
+   curl -X POST "http://localhost:PORT_SIGNAL_API/v2/send" \
+     -H "Content-Type: application/json" \
+     -d '{"message": "Hello from homelab!", "number": "+YOUR_SIGNAL_NUMBER", "recipients": ["+RECIPIENT_NUMBER"]}'
+   ```
+
+### Using with *arr apps
+
+In Radarr/Sonarr → Settings → Connect → Webhook:
+- **URL:** `http://signal-api:8080/v2/send`
+- Configure payload to include message, number (sender), and recipients
+
+### API Documentation
+
+Visit `http://localhost:PORT_SIGNAL_API/v1/api` for the Swagger UI with all available endpoints.
 
 
 ## Backups

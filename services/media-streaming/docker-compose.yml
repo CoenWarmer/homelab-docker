@@ -10,9 +10,11 @@ services:
     container_name: jellyfin
     image: jellyfin/jellyfin:latest
       
-    user: ${PUID}:${PGID}
-    group_add:
-      - ${GID_HARDWAREACC} # gid of your `render` group
+    # Temporarily commented out - may cause permission issues
+    # user: ${PUID}:${PGID}
+    # Uncomment if using hardware acceleration
+    # group_add:
+    #   - ${GID_HARDWAREACC} # gid of your `render` group
 
     networks:
       - htpc-net
@@ -36,17 +38,19 @@ services:
       - homepage.href=http://${SERVER_URL}:${PORT_HTPC_HTTP}
       - homepage.weight=100
       - homepage.widget.type=jellyfin
-      - homepage.widget.url=http://${SERVER_URL}:${PORT_HTPC_HTTP}
+      - homepage.widget.url=http://jellyfin:8096
       - homepage.widget.key=${HOMEPAGE_JELLYFIN_API}
 
-    devices:
-      - /dev/dri/renderD128:/dev/dri/renderD128 # VAAPI
-      - /dev/dri/card0:/dev/dri/card0
+    # Uncomment if you have GPU hardware acceleration available
+    # devices:
+    #   - /dev/dri/renderD128:/dev/dri/renderD128 # VAAPI
+    #   - /dev/dri/card0:/dev/dri/card0
 
     volumes:
       - ${CONFIGDIR}/jellyfin:/config
       - ${CACHEDIR}/jellyfin:/cache
       - ${MEDIADIR}:/media:ro #naming, etc all handled by *arr apps
+      - /tank/data:/tank/data:ro # Additional media storage
     
     #deploy:
     #  resources:
@@ -56,17 +60,13 @@ services:
     restart: unless-stopped
 
 
-  iSponsorBlockTV:
-    container_name: iSponsorBlockTV
-    image: ghcr.io/dmunozv04/isponsorblocktv:latest
-
-    
-    network_mode: host
-    
-    volumes:
-    - ${CONFIGDIR}/isponsorblocktv:/app/data
-
-    restart: unless-stopped
+  # iSponsorBlockTV:
+  #   container_name: iSponsorBlockTV
+  #   image: ghcr.io/dmunozv04/isponsorblocktv:latest
+  #   network_mode: host
+  #   volumes:
+  #   - ${CONFIGDIR}/isponsorblocktv:/app/data
+  #   restart: unless-stopped
 
 networks:
   caddy-net:

@@ -1,0 +1,66 @@
+name: "icloudpd"
+
+services:
+
+####################
+# iCloud Photos Downloader
+####################
+
+  icloudpd:
+    container_name: icloudpd
+    image: boredazfcuk/icloudpd:latest
+
+    environment:
+      TZ: ${TZ}
+      
+      # iCloud credentials
+      apple_id: ${ICLOUD_APPLE_ID}
+      
+      # Authentication type: 2FA or Web
+      authentication_type: 2FA
+      
+      # User/group for file permissions (numeric IDs)
+      user_id: ${PUID}
+      group_id: ${PGID}
+      
+      # Download settings
+      synchronisation_interval: 86400   # Sync every 24 hours (in seconds)
+      notification_days: 7              # Warn when 2FA expires in 7 days
+      
+      # Photo settings
+      photo_size: original              # original, medium, thumb
+      live_photo_size: original         # original, medium, thumb
+      set_exif_datetime: "false"
+      auto_delete: "false"              # Don't delete photos removed from iCloud
+      
+      # Folder structure
+      folder_structure: "{:%Y/%m}"      # Year/Month folders
+      
+      # Download options
+      skip_live_photos: "false"
+      skip_videos: "false"
+      
+      # Convert HEIC to JPEG (optional)
+      convert_heic_to_jpeg: "false"
+      
+    labels:
+      - diun.enable=true
+      - homepage.group=Media
+      - homepage.name=iCloud Photos Sync
+      - homepage.icon=icloud
+      - homepage.description=Downloads photos from iCloud
+
+    volumes:
+      # Downloaded photos - same location as Immich library
+      - /tank/data/photos:/home/user/iCloud
+      
+      # Authentication cookies and config
+      - ${CONFIGDIR}/icloudpd:/config
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+
+    restart: unless-stopped

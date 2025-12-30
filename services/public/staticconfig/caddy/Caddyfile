@@ -2,13 +2,18 @@
   email {$EMAIL} # Optional email key for lets encrypt
   #debug # this is optional; makes Caddy log more details
 
-  admin 0.0.0.0:2019
-      
+  admin localhost:2019
 }
 
 ############
 # Snippets #
 ############
+
+# Navigation bar injection - adds Dashboard and Logout links via JavaScript
+(navbar) {
+  replace </head> "<script>document.addEventListener('DOMContentLoaded',function(){if(document.getElementById('homelab-navbar'))return;var s=document.createElement('style');s.textContent='#homelab-navbar{position:fixed;top:0;left:0;right:0;height:40px;background:#1a1a1a;display:flex;justify-content:space-between;align-items:center;padding:0 20px;z-index:999999;font-family:system-ui,sans-serif;font-size:14px;box-shadow:0 2px 4px rgba(0,0,0,0.3)}#homelab-navbar a{color:#fff;text-decoration:none;padding:8px 16px;border-radius:4px;transition:background 0.2s}#homelab-navbar a:hover{background:#333}#homelab-navbar .logout{color:#ff6b6b}body{padding-top:40px!important}';document.head.appendChild(s);var n=document.createElement('div');n.id='homelab-navbar';n.innerHTML='<a href=\"https://start.{$DOMAIN}\">← Dashboard</a><a href=\"https://auth.{$DOMAIN}/logout?rd=https://start.{$DOMAIN}\" class=\"logout\">Log Out</a>';document.body.insertBefore(n,document.body.firstChild)});</script></head>"
+}
+
 (headers) {
 	header {
     -server #anonymizes Caddy
@@ -29,6 +34,14 @@
 
     header_up X-Real-IP {vars.realip}
 	}
+}
+
+(authelia) {
+  forward_auth authelia:9091 {
+    uri /api/authz/forward-auth
+    copy_headers Remote-User Remote-Groups Remote-Name Remote-Email Authorization
+    trusted_proxies private_ranges
+  }
 }
 
 (main) {
@@ -74,79 +87,102 @@ localhost {
 {$DOMAIN} {
   import headers
   import main
-
-  # SSL Cert via Duckdns build
-  tls {
-    dns duckdns {$DUCKDNS_API_TOKEN}
-  }
+  import authelia
 
   respond "Look at me"
-  # System Status page
-  reverse_proxy /status/* uptime-kuma:3001
 }
 
 www.{$DOMAIN} {
   redir {$DOMAIN}{uri}
 }
 
-ghs.{$DOMAIN} {
-  import headers
-  import main
-
-  reverse_proxy gloomhaven:80
-}
-
-ghs-server.{$DOMAIN} {
-  import headers
-  import main
-
-  reverse_proxy gloomhaven-server:8080
-
-  @websockets {
-    header Connection *Upgrade*
-    header Upgrade websocket
-    header Access-Control-Allow-Origin ghs.{$DOMAIN}
-    header Access-Control-Allow-Origin gloomhaven-secretary.de
-  }
-  reverse_proxy @websockets gloomhaven-server:8080
-}
-
 jelly.{$DOMAIN} {
-  import headers
   import main
+  # import navbar
+  
+  # Auto-redirect root to SSO (only exact "/" path, not /web/ which SSO plugin uses after login)
+  # redir / /sso/OID/start/authelia
+  
+  # SSO plugin fix: https://github.com/9p4/jellyfin-plugin-sso/issues/200#issuecomment-2233553305
+  header X-Frame-Options SAMEORIGIN
 
   reverse_proxy jellyfin:8096
 }
 
-meet.{$DOMAIN} {
+# Homepage Dashboard (full version with widgets)
+home.{$DOMAIN} {
   import headers
   import main
+  import authelia
+  import navbar
 
-  reverse_proxy rallly:3000
+  reverse_proxy homepage:3000
 }
 
-recipe.{$DOMAIN} {
+# Simple Dashboard (Homer)
+start.{$DOMAIN} {
   import headers
   import main
+  import authelia
 
-  handle_path /media/* {
-			root * /www/tandoor
-			file_server
-		}
-
-  reverse_proxy tandoor:8080
+  reverse_proxy homer:8080
 }
 
+# Authelia SSO
+auth.{$DOMAIN} {
+  import main
+  
+  # Custom headers to allow Authelia to be framed by Jellyfin for SSO token exchange
+  header {
+    -server
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options "nosniff"
+    # Allow framing by Jellyfin for SSO plugin iframe token exchange
+    Content-Security-Policy "frame-ancestors 'self' https://jelly.{$DOMAIN}"
+    -X-Frame-Options
+  }
+
+  reverse_proxy authelia:9091
+}
+
+# Home Assistant  
+ha.{$DOMAIN} {
+  import headers
+  import main
+  import authelia
+
+  reverse_proxy homeassistant:8123
+}
+
+# Media Request (Jellyseerr)
 request.{$DOMAIN} {
   import headers
   import main
+  # import authelia
+  # import navbar
 
   reverse_proxy jellyseerr:5055
 }
 
-status.{$DOMAIN} {
+# Photos (Immich)
+photos.{$DOMAIN} {
   import headers
   import main
+  import authelia
+  # import navbar
 
-  reverse_proxy uptime-kuma:3001
+  # Immich requires larger upload sizes for photos/videos
+  request_body {
+    max_size 50GB
+  }
+
+  reverse_proxy immich-server:2283
+}
+
+logs.{$DOMAIN} {
+  import headers
+  import main
+  import authelia
+
+  reverse_proxy dozzle:8080
 }

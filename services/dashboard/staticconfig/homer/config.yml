@@ -1,0 +1,72 @@
+---
+title: "Home"
+subtitle: "Quick Access"
+logo: "assets/tools/home.png"
+
+header: false
+footer: false
+
+columns: "3"
+connectivityCheck: false
+
+theme: default
+colors:
+  light:
+    highlight-primary: "#fff5f2"
+    highlight-secondary: "#fff5f2"
+    highlight-hover: "#bebebe"
+    background: "#12152B"
+    card-background: "#1E2140"
+    text: "#eaeaea"
+    text-header: "#ffffff"
+    text-title: "#fafafa"
+    text-subtitle: "#8B8D9A"
+    card-shadow: rgba(0, 0, 0, 0.5)
+    link: "#3273dc"
+    link-hover: "#363636"
+  dark:
+    highlight-primary: "#181C3A"
+    highlight-secondary: "#181C3A"
+    highlight-hover: "#1E2140"
+    background: "#12152B"
+    card-background: "#1E2140"
+    text: "#eaeaea"
+    text-header: "#ffffff"
+    text-title: "#fafafa"
+    text-subtitle: "#8B8D9A"
+    card-shadow: rgba(0, 0, 0, 0.5)
+    link: "#c1c1c1"
+    link-hover: "#ffffff"
+
+links: []
+
+# NOTE: Homer doesn't support environment variable substitution in config.yml
+# You need to manually update these URLs with your domain, or use a template engine
+# Example URLs below use placeholder domain - replace with your actual domain
+services:
+  - name: "Entertainment"
+    icon: "fas fa-film"
+    items:
+      - name: "Jellyfin"
+        subtitle: "Watch Movies & TV"
+        logo: "https://raw.githubusercontent.com/walkxcode/Dashboard-Icons/main/png/jellyfin.png"
+        url: "https://jelly.YOUR_DOMAIN_HERE"
+        target: "_blank"
+
+      - name: "Jellyseerr"
+        subtitle: "Request Media"
+        logo: "https://raw.githubusercontent.com/walkxcode/Dashboard-Icons/main/png/jellyseerr.png"
+        url: "https://request.YOUR_DOMAIN_HERE"
+        target: "_blank"
+
+  - name: "Home"
+    icon: "fas fa-home"
+    items:
+      - name: "Home Assistant"
+        subtitle: "Smart Home Control"
+        logo: "https://raw.githubusercontent.com/walkxcode/Dashboard-Icons/main/png/home-assistant.png"
+        url: "https://ha.YOUR_DOMAIN_HERE"
+        target: "_blank"
+
+
+

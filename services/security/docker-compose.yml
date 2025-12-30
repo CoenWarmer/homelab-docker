@@ -94,12 +94,12 @@ services:
 #   crowdsec-db:
 #     external: true
 
-
-networks:
-  # caddy-net:
-  #   name: caddy-net
-  #   external: true
-  
-  # socky_proxy-net:
-  #   name: socky_proxy-net
-  #   external: true
+# Networks section removed - endlessh uses default bridge network
+# Uncomment below if you enable CrowdSec
+# networks:
+#   caddy-net:
+#     name: caddy-net
+#     external: true
+#   socky_proxy-net:
+#     name: socky_proxy-net
+#     external: true

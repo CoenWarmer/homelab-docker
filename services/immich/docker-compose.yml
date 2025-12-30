@@ -1,0 +1,181 @@
+name: "immich"
+
+services:
+
+####################
+# Photo Management
+####################
+
+  immich-server:
+    container_name: immich-server
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION:-release}
+
+    depends_on:
+      immich-redis:
+        condition: service_started
+      immich-postgres:
+        condition: service_healthy
+
+    networks:
+      - caddy-net
+      - immich-net
+
+    # Hardware acceleration for Intel N100 (Quick Sync)
+    devices:
+      - /dev/dri:/dev/dri
+
+    environment:
+      TZ: ${TZ}
+      
+      # Database
+      DB_HOSTNAME: immich-postgres
+      DB_DATABASE_NAME: immich
+      DB_USERNAME: immich
+      DB_PASSWORD: ${IMMICH_DB_PASSWORD}
+      
+      # Redis
+      REDIS_HOSTNAME: immich-redis
+
+    labels:
+      - diun.enable=true
+      - homepage.group=Media
+      - homepage.name=Photos
+      - homepage.icon=immich
+      - homepage.href=https://photos.${DOMAIN}
+      - homepage.description=Photo and video backup
+      - homepage.weight=200
+      - homepage.widget.type=immich
+      - homepage.widget.url=http://immich-server:2283
+      - homepage.widget.key=${IMMICH_API_KEY}
+      - homepage.widget.version=2
+
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /tank/data/photos:/usr/src/app/upload  # Photo library for Immich uploads
+      - /tank/data/photos:/external/icloud:ro  # iCloud photos as external library (read-only)
+      - ${CONFIGDIR}/immich/profile:/usr/src/app/upload/profile  # Profile pictures
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2283/api/server/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    restart: unless-stopped
+
+
+  immich-machine-learning:
+    container_name: immich-ml
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}
+
+    networks:
+      - immich-net
+
+    # Hardware acceleration for Intel N100 (OpenVINO)
+    devices:
+      - /dev/dri:/dev/dri
+
+    environment:
+      TZ: ${TZ}
+      # Uncomment to use OpenVINO for Intel N100 acceleration
+      # MACHINE_LEARNING_WORKERS: 1
+      # MACHINE_LEARNING_WORKER_TIMEOUT: 120
+
+    labels:
+      - diun.enable=true
+
+    volumes:
+      - ${CONFIGDIR}/immich/ml-cache:/cache  # ML model cache
+
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import requests; requests.get('http://localhost:3003/ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+    restart: unless-stopped
+
+
+####################
+# Backend Services
+####################
+
+  immich-redis:
+    container_name: immich-redis
+    image: docker.io/redis:6.2-alpine
+
+    networks:
+      - immich-net
+
+    labels:
+      - diun.enable=true
+
+    volumes:
+      - ${CONFIGDIR}/immich/redis:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 128M
+
+    restart: unless-stopped
+
+
+  immich-postgres:
+    container_name: immich-postgres
+    image: docker.io/tensorchord/pgvecto-rs:pg14-v0.2.0
+
+    networks:
+      - immich-net
+
+    environment:
+      POSTGRES_DB: immich
+      POSTGRES_USER: immich
+      POSTGRES_PASSWORD: ${IMMICH_DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+
+    labels:
+      - diun.enable=true
+
+    volumes:
+      - ${CONFIGDIR}/immich/postgres:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d immich -U immich"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    command: ["postgres", "-c", "shared_preload_libraries=vectors.so", "-c", "search_path=\"$$user\", public, vectors", "-c", "logging_collector=on", "-c", "max_wal_size=2GB", "-c", "shared_buffers=512MB", "-c", "wal_compression=on"]
+
+    restart: unless-stopped
+
+
+####################
+# Networks
+####################
+
+networks:
+  caddy-net:
+    name: caddy-net
+    external: true
+  immich-net:
+    name: immich-net
+    driver: bridge
+

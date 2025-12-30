@@ -1,0 +1,44 @@
+name: "protonmail-bridge"
+
+services:
+
+####################
+# Proton Mail Bridge
+####################
+
+  protonmail-bridge:
+    container_name: protonmail-bridge
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    networks:
+      - proton-bridge-net
+    
+    ports:
+      - "127.0.0.1:1025:25"    # SMTP (localhost only for security)
+      - "127.0.0.1:1143:143"   # IMAP (localhost only for security)
+    
+    environment:
+      TZ: ${TZ}
+      PROTONMAIL_ENV: prod
+      BRIDGE_NO_KEYCHAIN: "1"
+    
+    volumes:
+      - ${CONFIGDIR}/protonmail-bridge:/root
+    
+    labels:
+      - diun.enable=true
+      - homepage.group=Back End
+      - homepage.name=Proton Mail Bridge
+      - homepage.icon=protonmail
+      - homepage.description=Email bridge for SMTP/IMAP
+      - homepage.weight=852
+    
+    restart: unless-stopped
+
+networks:
+  proton-bridge-net:
+    name: proton-bridge-net
+    external: true
+

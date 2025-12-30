@@ -1,0 +1,72 @@
+name: "home-assistant"
+
+services:
+
+####################
+# Home Automation
+####################
+
+  homeassistant:
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+
+    networks:
+      - caddy-net # provides access for the reverse proxy
+      - home-assistant-net
+
+    ports:
+      - ${PORT_HOMEASSISTANT}:8123
+
+    environment:
+      TZ: ${TZ}
+
+    labels:
+      - diun.enable=true
+      - homepage.group=Home
+      - homepage.name=Home Assistant
+      - homepage.icon=home-assistant
+      - homepage.href=http://${SERVER_URL}:${PORT_HOMEASSISTANT}
+      - homepage.description=Home Automation Platform
+      - homepage.weight=100
+      - homepage.widget.type=homeassistant
+      - homepage.widget.url=http://${SERVER_URL}:${PORT_HOMEASSISTANT}
+      - homepage.widget.key=${HOMEPAGE_HOMEASSISTANT_API}
+
+    volumes:
+      - ${CONFIGDIR}/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+    
+    # Uncomment the following lines if you need USB device access (Zigbee/Z-Wave/etc)
+    # devices:
+    #   - /dev/ttyUSB0:/dev/ttyUSB0
+    #   - /dev/ttyACM0:/dev/ttyACM0
+
+    # Uncomment if you need host network mode for device discovery
+    # Note: This will override the networks and ports configuration above
+    # network_mode: host
+
+    privileged: false
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8123"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1024M
+    restart: unless-stopped
+
+
+networks:
+  caddy-net:
+    name: caddy-net
+    external: true
+  home-assistant-net:
+    name: home-assistant-net
+    external: true
+
