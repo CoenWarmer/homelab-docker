@@ -4,25 +4,28 @@ services:
 
 ####################
 # Proton Mail Bridge
+# Using shenxn/protonmail-bridge-docker
+# https://github.com/shenxn/protonmail-bridge-docker
 ####################
 
   protonmail-bridge:
     container_name: protonmail-bridge
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: shenxn/protonmail-bridge:latest
     
     networks:
       - proton-bridge-net
     
     ports:
-      - "127.0.0.1:1025:25"    # SMTP (localhost only for security)
-      - "127.0.0.1:1143:143"   # IMAP (localhost only for security)
+      - 1025:25/tcp
     
+    # Expose actual bridge ports for Docker network access
+    # (shenxn image socat forwards to wrong ports for v3)
+    expose:
+      - "1026"   # SMTP direct (Proton Bridge v3)
+      - "1144"   # IMAP direct (Proton Bridge v3)
+
     environment:
       TZ: ${TZ}
-      PROTONMAIL_ENV: prod
-      BRIDGE_NO_KEYCHAIN: "1"
     
     volumes:
       - ${CONFIGDIR}/protonmail-bridge:/root
@@ -41,4 +44,3 @@ networks:
   proton-bridge-net:
     name: proton-bridge-net
     external: true
-

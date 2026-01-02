@@ -37,15 +37,16 @@ services:
       AUTHELIA_SESSION_REDIS_HOST: authelia_redis
       AUTHELIA_SESSION_REDIS_PORT: 6379
       # SMTP Configuration - connects to Proton Bridge container
-      AUTHELIA_NOTIFIER_SMTP_ADDRESS: smtp://protonmail-bridge:25
+      AUTHELIA_NOTIFIER_SMTP_ADDRESS: smtp://protonmail-bridge:1026
       AUTHELIA_NOTIFIER_SMTP_USERNAME: ${AUTHELIA_NOTIFIER_SMTP_USERNAME}
       AUTHELIA_NOTIFIER_SMTP_PASSWORD: ${AUTHELIA_NOTIFIER_SMTP_PASSWORD}
       AUTHELIA_NOTIFIER_SMTP_SENDER: ${AUTHELIA_NOTIFIER_SMTP_SENDER}
       AUTHELIA_NOTIFIER_SMTP_SUBJECT: "[Authelia] {title}"
       AUTHELIA_NOTIFIER_SMTP_TLS_SKIP_VERIFY: "true"
+      AUTHELIA_NOTIFIER_SMTP_DISABLE_REQUIRE_TLS: "true"
       # OIDC Provider secrets
       AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET: ${AUTHELIA_OIDC_HMAC_SECRET}
-      AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY: ${AUTHELIA_OIDC_ISSUER_PRIVATE_KEY}
+      AUTHELIA_IDENTITY_PROVIDERS_OIDC_ISSUER_PRIVATE_KEY_FILE: /config/oidc_issuer_key.pem
       AUTHELIA_OIDC_JELLYFIN_SECRET: ${AUTHELIA_OIDC_JELLYFIN_SECRET}
       AUTHELIA_OIDC_JELLYSEERR_SECRET: ${AUTHELIA_OIDC_JELLYSEERR_SECRET}
     
@@ -53,6 +54,7 @@ services:
       - ${CONFIGDIR}/authelia:/config
       - ./staticconfig/configuration.yml:/config/configuration.yml
       - ./staticconfig/users_database.yml:/config/users_database.yml
+      - ./staticconfig/oidc_issuer_key.pem:/config/oidc_issuer_key.pem:ro
     
     labels:
       - diun.enable=true

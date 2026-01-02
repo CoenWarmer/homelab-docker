@@ -144,7 +144,7 @@ identity_providers:
       # Jellyfin SSO Plugin
       - client_id: 'jellyfin'
         client_name: 'Jellyfin'
-        client_secret: '{{ env "AUTHELIA_OIDC_JELLYFIN_SECRET" }}'
+        client_secret: '$argon2id$v=19$m=65536,t=3,p=4$ZgqHL0wgbqhzYQPznxqG6g$ItreyBSVBrzo2A+bHvRMhUQX5HcnrR37+ing/7wuEiI'
         public: false
         authorization_policy: 'two_factor'
         require_pkce: false
@@ -162,7 +162,7 @@ identity_providers:
       # Jellyseerr
       - client_id: 'jellyseerr'
         client_name: 'Jellyseerr'
-        client_secret: '{{ env "AUTHELIA_OIDC_JELLYSEERR_SECRET" }}'
+        client_secret: '$argon2id$v=19$m=65536,t=3,p=4$6lw4jGyWkvHUkwVBpsrPtw$5uTgnJB1NT2Yo97UeUK66UTTDJl8NbCJ29bB7v0YL0A'
         public: false
         authorization_policy: 'two_factor'
         require_pkce: false
