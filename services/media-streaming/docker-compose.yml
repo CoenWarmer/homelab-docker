@@ -41,10 +41,9 @@ services:
       - homepage.widget.url=http://jellyfin:8096
       - homepage.widget.key=${HOMEPAGE_JELLYFIN_API}
 
-    # Uncomment if you have GPU hardware acceleration available
-    # devices:
-    #   - /dev/dri/renderD128:/dev/dri/renderD128 # VAAPI
-    #   - /dev/dri/card0:/dev/dri/card0
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128 # VAAPI
+      - /dev/dri/card0:/dev/dri/card0
 
     volumes:
       - ${CONFIGDIR}/jellyfin:/config

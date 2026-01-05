@@ -78,13 +78,17 @@ services:
 
     networks:
       - socky_proxy-net
+      - caddy-net  # For Signal API access
       
     command: serve
 
     environment:
       TZ: ${TZ}
       LOG_JSON: "true"
-      DIUN_NOTIF_DISCORD_WEBHOOKURL: ${DIUN_NOTIF_DISCORD_WEBHOOKURL}
+      # DIUN_NOTIF_DISCORD_WEBHOOKURL: ${DIUN_NOTIF_DISCORD_WEBHOOKURL}
+      DIUN_NOTIF_SIGNALREST_ENDPOINT: ${DIUN_SIGNAL_ENDPOINT}
+      DIUN_NOTIF_SIGNALREST_NUMBER: ${DIUN_SIGNAL_NUMBER}
+      DIUN_NOTIF_SIGNALREST_RECIPIENTS: ${DIUN_SIGNAL_RECIPIENT}
       DIUN_PROVIDERS_DOCKER_ENDPOINT: tcp://socky_proxy:${PORT_SOCKY_PROXY} # redirects socket to the proxy
 
     labels:
@@ -127,7 +131,7 @@ services:
       - homepage.href=http://${SERVER_URL}:${PORT_SCRUTINY}
       - homepage.description=Harddrive Health Monitoring
       - homepage.widget.type=scrutiny
-      - homepage.widget.url=http://${SERVER_URL}:${PORT_SCRUTINY}
+      - homepage.widget.url=http://scrutiny:8080
 
     devices:
       - /dev/sda  # GIGABYTE SSD
@@ -206,7 +210,7 @@ services:
       - homepage.icon=uptime-kuma
       - homepage.href=http://${SERVER_URL}:${PORT_UPKUMA}
       - homepage.widget.type=uptimekuma
-      - homepage.widget.url=http://${SERVER_URL}:${PORT_UPKUMA}
+      - homepage.widget.url=http://uptime_kuma:3001
       - homepage.widget.slug=default
 
     volumes:

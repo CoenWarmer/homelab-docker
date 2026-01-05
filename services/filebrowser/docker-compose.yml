@@ -1,0 +1,53 @@
+name: "filebrowser"
+
+services:
+
+####################
+# File Browser
+####################
+
+  filebrowser:
+    container_name: filebrowser
+    image: filebrowser/filebrowser:latest
+
+    networks:
+      - caddy-net # provides access for the reverse proxy
+
+    ports:
+      - ${PORT_FILEBROWSER}:80
+
+    environment:
+      TZ: ${TZ}
+
+    labels:
+      - diun.enable=true
+      - homepage.group=Home
+      - homepage.name=Filebrowser
+      - homepage.icon=filebrowser
+      - homepage.href=http://${SERVER_URL}:${PORT_FILEBROWSER}
+      - homepage.description=File Browser
+      - homepage.weight=100
+      - homepage.widget.type=filebrowser
+      - homepage.widget.url=http://${SERVER_URL}:${PORT_FILEBROWSER}
+      - homepage.widget.key=${HOMEPAGE_FILEBROWSER_API}
+
+    volumes:
+      - ${CONFIGDIR}/filebrowser:/config
+      - ${CONFIGDIR}/filebrowser:/database
+      - /tank/data:/srv
+    
+    privileged: false
+
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1024M
+    restart: unless-stopped
+
+
+networks:
+  caddy-net:
+    name: caddy-net
+    external: true

@@ -36,18 +36,23 @@ echo -e "\n${GREEN}Step 4: Starting Monitoring Services...${NC}"
 cd "$SCRIPT_DIR/../services/monitor"
 docker compose up -d
 
+# Start file browser 
+echo -e "\n${GREEN}Step 5: Starting File Browser...${NC}"
+cd "$SCRIPT_DIR/../services/filebrowser"
+docker compose up -d
+
 # Start home assistant if not already running
-echo -e "\n${GREEN}Step 5: Starting Home Automation...${NC}"
+echo -e "\n${GREEN}Step 6: Starting Home Automation...${NC}"
 cd "$SCRIPT_DIR/../services/home-assistant"
 docker compose up -d
 
 # Start Immich (photo management)
-echo -e "\n${GREEN}Step 6: Starting Immich...${NC}"
+echo -e "\n${GREEN}Step 7: Starting Immich...${NC}"
 cd "$SCRIPT_DIR/../services/immich"
 docker compose up -d
 
 # Start iCloud Photos Downloader
-echo -e "\n${GREEN}Step 7: Starting iCloud Photos Downloader...${NC}"
+echo -e "\n${GREEN}Step 8: Starting iCloud Photos Downloader...${NC}"
 cd "$SCRIPT_DIR/../services/icloudpd"
 docker compose up -d
 

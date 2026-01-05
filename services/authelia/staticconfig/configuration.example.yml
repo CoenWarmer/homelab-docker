@@ -83,6 +83,7 @@ access_control:
         - 'request.{{ env "DOMAIN" }}'
         - 'photos.{{ env "DOMAIN" }}'
         - 'logs.{{ env "DOMAIN" }}'
+        - 'filebrowser.{{ env "DOMAIN" }}'
       policy: two_factor
 
 session:
@@ -144,7 +145,7 @@ identity_providers:
       # Jellyfin SSO Plugin
       - client_id: 'jellyfin'
         client_name: 'Jellyfin'
-        client_secret: '$argon2id$v=19$m=65536,t=3,p=4$ZgqHL0wgbqhzYQPznxqG6g$ItreyBSVBrzo2A+bHvRMhUQX5HcnrR37+ing/7wuEiI'
+        client_secret: '<SECRET>'
         public: false
         authorization_policy: 'two_factor'
         require_pkce: false
@@ -158,11 +159,12 @@ identity_providers:
           - 'email'
         userinfo_signed_response_alg: 'none'
         token_endpoint_auth_method: 'client_secret_post'
+        consent_mode: 'implicit'
       
       # Jellyseerr
       - client_id: 'jellyseerr'
         client_name: 'Jellyseerr'
-        client_secret: '$argon2id$v=19$m=65536,t=3,p=4$6lw4jGyWkvHUkwVBpsrPtw$5uTgnJB1NT2Yo97UeUK66UTTDJl8NbCJ29bB7v0YL0A'
+        client_secret: '<SECRET>'
         public: false
         authorization_policy: 'two_factor'
         require_pkce: false
@@ -185,6 +187,7 @@ identity_providers:
         pkce_challenge_method: 'S256'
         authorization_policy: 'two_factor'
         require_pushed_authorization_requests: false
+        consent_mode: 'implicit'
         redirect_uris:
           - 'https://ha.{{ env "DOMAIN" }}/auth/oidc/callback'
         scopes:
@@ -192,4 +195,23 @@ identity_providers:
           - 'profile'
           - 'groups'
         id_token_signed_response_alg: 'RS256'
-...
+      
+      # Immich
+      - client_id: 'immich'
+        client_name: 'Immich'
+        client_secret: '<SECRET>'
+        public: false
+        authorization_policy: 'two_factor'
+        consent_mode: 'implicit'
+        require_pkce: false
+        require_pushed_authorization_requests: false
+        redirect_uris:
+          - 'https://photos.{{ env "DOMAIN" }}/auth/login'
+          - 'https://photos.{{ env "DOMAIN" }}/user-settings'
+          - 'app.immich:///oauth-callback'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+        userinfo_signed_response_alg: 'none'
+        token_endpoint_auth_method: 'client_secret_post'

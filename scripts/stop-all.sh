@@ -17,3 +17,6 @@ docker stop $(docker ps -q) 2>/dev/null
 echo -e "\n${GREEN}=== All Services Stopped ===${NC}"
 
 
+
+
+

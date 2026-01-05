@@ -186,3 +186,11 @@ logs.{$DOMAIN} {
 
   reverse_proxy dozzle:8080
 }
+
+filebrowser.{$DOMAIN} {
+  import headers
+  import main
+  import authelia
+
+  reverse_proxy filebrowser:80
+}
