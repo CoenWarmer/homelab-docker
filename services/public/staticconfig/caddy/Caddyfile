@@ -3,6 +3,9 @@
   #debug # this is optional; makes Caddy log more details
 
   admin localhost:2019
+
+  # Use Cloudflare DNS challenge for all certificates (supports wildcards)
+  acme_dns cloudflare {$CLOUDFLARE_API_TOKEN}
 }
 
 ############

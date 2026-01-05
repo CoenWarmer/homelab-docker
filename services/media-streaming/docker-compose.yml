@@ -43,7 +43,7 @@ services:
 
     devices:
       - /dev/dri/renderD128:/dev/dri/renderD128 # VAAPI
-      - /dev/dri/card0:/dev/dri/card0
+      - /dev/dri/card1:/dev/dri/card0
 
     volumes:
       - ${CONFIGDIR}/jellyfin:/config
